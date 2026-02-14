@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://mattikedewar.netlify.app/</loc>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Example News Article 1 -->
+  <url>
+    <loc>https://mattikedewar.netlify.app/news/article-1</loc>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+
+    <news:news>
+      <news:publication>
+        <news:name>Roznama Matti Ke Dewar</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2026-02-15</news:publication_date>
+      <news:title>Breaking News: Matti Ke Dewar Daily Update</news:title>
+    </news:news>
+  </url>
+
+  <!-- Example News Article 2 -->
+  <url>
+    <loc>https://mattikedewar.netlify.app/news/article-2</loc>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+
+    <news:news>
+      <news:publication>
+        <news:name>Roznama Matti Ke Dewar</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2026-02-15</news:publication_date>
+      <news:title>Matti Ke Dewar Karachi Today Headlines</news:title>
+    </news:news>
+  </url>
+
+  <!-- Add more articles below following the same structure -->
+  
+</urlset>
