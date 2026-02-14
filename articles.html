@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDITORIALS & OPINIONS | MATTI KE DEWAR</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Outfit:wght@400;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --gold: #FFD700;
+            --black: #000000;
+            --white: #ffffff;
+            --paper: #f4f4f4;
+            --text-stroke: 1.2px 1.2px 0px #000, -1px -1px 0px #000, 1px -1px 0px #000, -1px 1px 0px #000;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--paper);
+            font-family: 'Outfit', sans-serif;
+            padding-top: 70px;
+        }
+
+        /* --- VIP HEADER --- */
+        header {
+            background: var(--black);
+            height: 70px;
+            width: 100%;
+            position: fixed;
+            top: 0; left: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5%;
+            z-index: 1000;
+            border-bottom: 4px solid var(--gold);
+        }
+
+        .logo {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 2rem;
+            color: var(--gold);
+            text-shadow: 2px 2px 0px #444;
+        }
+
+        .hamburger { color: var(--gold); font-size: 1.8rem; cursor: pointer; }
+
+        /* --- NAV OVERLAY --- */
+        .nav-overlay {
+            position: fixed;
+            top: 0; right: -100%;
+            width: 100%; max-width: 350px;
+            height: 100vh;
+            background-color: rgba(0,0,0,0.98);
+            z-index: 2000;
+            transition: 0.4s ease-in-out;
+            display: flex; flex-direction: column;
+            padding-top: 80px;
+            border-left: 5px solid var(--gold);
+        }
+        .nav-overlay.active { right: 0; }
+        .nav-overlay a {
+            padding: 15px 30px; font-size: 1.4rem; color: var(--gold);
+            text-decoration: none; font-family: 'Bebas Neue'; border-bottom: 1px solid #222;
+        }
+        .close-btn { position: absolute; top: 15px; right: 25px; color: #fff; font-size: 3rem; cursor: pointer; }
+
+        /* --- CONTAINER --- */
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 50px auto;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 60px;
+            background: var(--black);
+            padding: 40px 20px;
+            border-left: 10px solid var(--gold);
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.1);
+        }
+
+        .page-header h1 {
+            font-family: 'Archivo Black';
+            text-shadow: var(--text-stroke);
+            color: white;
+            font-size: clamp(0.8rem, 4vw, 1rem);
+            text-transform: uppercase;
+        }
+
+        .page-header p {
+            color: var(--gold);
+            font-family: 'Bebas Neue';
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            margin-top: 10px;
+        }
+
+        /* --- ARTICLE GRID --- */
+        .article-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 40px;
+        }
+
+        .article-card {
+            background: var(--white);
+            border: 3px solid var(--black);
+            display: flex;
+            flex-direction: column;
+            transition: 0.3s;
+            cursor: pointer;
+            box-shadow: 10px 10px 0px var(--black);
+            position: relative;
+        }
+
+        .article-card:hover {
+            transform: translate(-5px, -5px);
+            box-shadow: 15px 15px 0px var(--gold);
+        }
+
+        .card-body {
+            padding: 30px;
+            flex-grow: 1;
+        }
+
+        .meta-tag {
+            background: var(--black);
+            color: var(--gold);
+            display: inline-block;
+            padding: 2px 12px;
+            font-family: 'Bebas Neue';
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-family: 'Archivo Black';
+            font-size: 1.4rem;
+            color: var(--black);
+            line-height: 1.2;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .card-excerpt {
+            font-family: 'Playfair Display', serif;
+            color: #444;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-footer {
+            padding: 20px 30px;
+            background: var(--black);
+            color: var(--white);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Bebas Neue';
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
+        .author-name { color: var(--gold); }
+
+        /* --- READING MODAL --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: var(--white);
+            overflow-y: auto;
+            padding: 40px 0;
+        }
+
+        .modal-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .modal-close {
+            position: fixed;
+            top: 20px; right: 30px;
+            font-size: 4rem;
+            color: var(--black);
+            cursor: pointer;
+            z-index: 3001;
+            font-family: 'Bebas Neue';
+        }
+
+        .modal-title {
+            font-family: 'Archivo Black';
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            line-height: 1.1;
+            margin-bottom: 25px;
+            color: var(--black);
+            text-transform: uppercase;
+            border-bottom: 8px solid var(--gold);
+            padding-bottom: 10px;
+        }
+
+        .modal-meta {
+            font-family: 'Bebas Neue';
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+        }
+
+        .modal-body {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            line-height: 1.9;
+            color: #111;
+            white-space: pre-wrap;
+        }
+
+        .loading-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 100px;
+            font-family: 'Bebas Neue';
+            font-size: 2rem;
+            color: var(--black);
+        }
+
+        footer {
+            background: var(--black);
+            color: var(--white);
+            padding: 60px 5%;
+            text-align: center;
+            margin-top: 100px;
+        }
+
+        @media (max-width: 600px) {
+            .article-grid { grid-template-columns: 1fr; }
+            .modal-content { padding: 40px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">MATTI KE DEWAR</div>
+        <div class="hamburger" onclick="toggleMenu()">
+            <i class="fas fa-bars-staggered"></i>
+        </div>
+    </header>
+
+    <div class="nav-overlay" id="navOverlay">
+        <div class="close-btn" onclick="toggleMenu()">&times;</div>
+        <a href="index.html">Home</a>
+        <a href="newspaper.html">Recent Newspaper</a>
+        <a href="team.html">Our Team</a>
+        <a href="history.html">Our History</a>
+        <a href="submit-news.html">Submit News</a>
+        <a href="articles.html">Short Articles</a>
+    </div>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>SHORT ARTICLES</h1>
+                   </div>
+
+        <div class="article-grid" id="articleContainer">
+            <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i> SYNCING DATABASE...
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="readModal">
+        <div class="modal-close" onclick="closeModal()">&times;</div>
+        <div class="modal-content">
+            <h1 class="modal-title" id="mTitle"></h1>
+            <div class="modal-meta" id="mMeta"></div>
+            <div class="modal-body" id="mBody"></div>
+        </div>
+    </div>
+
+    <footer>
+        <h2 class="logo">MATTI KE DEWAR</h2>
+        <p style="margin-top: 10px; opacity: 0.6; font-family: 'Bebas Neue'; letter-spacing: 2px;">THE INTELLECTUAL HUB</p>
+        <p style="margin-top: 25px; font-size: 0.8rem;">&copy; 2026 Roznama Matti Ke Dewar. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAosLLivdRapn5yowINSTAmavo8ckqNeps",
+            authDomain: "newspaper-22df2.firebaseapp.com",
+            projectId: "newspaper-22df2",
+            storageBucket: "newspaper-22df2.firebasestorage.app",
+            messagingSenderId: "879891754095",
+            appId: "1:879891754095:web:2a4b95bd6879487cabf19a",
+            measurementId: "G-LWE6XJ0NGK",
+            databaseURL: "https://newspaper-22df2-default-rtdb.firebaseio.com"
+        };
+
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const database = firebase.database();
+
+        function toggleMenu() { document.getElementById('navOverlay').classList.toggle('active'); }
+
+        const container = document.getElementById('articleContainer');
+        const articlesRef = database.ref('articles');
+
+        articlesRef.on('value', (snapshot) => {
+            container.innerHTML = ''; 
+            const data = snapshot.val();
+
+            if (!data) {
+                container.innerHTML = '<div class="loading-state">THE ARCHIVE IS CURRENTLY EMPTY.</div>';
+                return;
+            }
+
+            const articles = Object.values(data).reverse();
+
+            articles.forEach(article => {
+                const card = document.createElement('div');
+                card.className = 'article-card';
+                card.onclick = () => openModal(article.title, article.author, article.date, article.content);
+
+                card.innerHTML = `
+                    <div class="card-body">
+                        <span class="meta-tag">Exclusive Column</span>
+                        <h2 class="card-title">${escapeHtml(article.title)}</h2>
+                        <p class="card-excerpt">${escapeHtml(article.content)}</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="author-name"><i class="fas fa-pen-fancy"></i> BY ${escapeHtml(article.author)}</span>
+                        <span>${formatDate(article.date)}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        });
+
+        const modal = document.getElementById('readModal');
+        const mTitle = document.getElementById('mTitle');
+        const mMeta = document.getElementById('mMeta');
+        const mBody = document.getElementById('mBody');
+
+        function openModal(title, author, date, content) {
+            mTitle.innerText = title;
+            mMeta.innerText = `WRITTEN BY ${author} | ${formatDate(date)}`;
+            mBody.innerText = content;
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return "";
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('en-US', options).toUpperCase();
+        }
+    </script>
+</body>
+</html>

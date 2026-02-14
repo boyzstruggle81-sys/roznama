@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUBMIT NEWS | MATTI KE DEWAR VIP</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --gold: #FFD700;
+            --black: #000000;
+            --white: #ffffff;
+            --paper: #f4f4f4;
+            --text-stroke: 1.2px 1.2px 0px #000, -1px -1px 0px #000, 1px -1px 0px #000, -1px 1px 0px #000;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--paper);
+            font-family: 'Outfit', sans-serif;
+            padding-top: 70px;
+        }
+
+        /* --- VIP HEADER --- */
+        header {
+            background: var(--black);
+            height: 70px;
+            width: 100%;
+            position: fixed;
+            top: 0; left: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5%;
+            z-index: 1000;
+            border-bottom: 4px solid var(--gold);
+        }
+
+        .logo {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 2rem;
+            color: var(--gold);
+            text-shadow: 2px 2px 0px #444;
+        }
+
+        .hamburger { color: var(--gold); font-size: 1.8rem; cursor: pointer; }
+
+        /* --- NAV OVERLAY --- */
+        .nav-overlay {
+            position: fixed;
+            top: 0; right: -100%;
+            width: 100%; max-width: 350px;
+            height: 100vh;
+            background-color: rgba(0,0,0,0.98);
+            z-index: 2000;
+            transition: 0.4s ease-in-out;
+            display: flex; flex-direction: column;
+            padding-top: 80px;
+            border-left: 5px solid var(--gold);
+        }
+        .nav-overlay.active { right: 0; }
+        .nav-overlay a {
+            padding: 15px 30px; font-size: 1.4rem; color: var(--gold);
+            text-decoration: none; font-family: 'Bebas Neue'; border-bottom: 1px solid #222;
+        }
+        .close-btn { position: absolute; top: 15px; right: 25px; color: #fff; font-size: 3rem; cursor: pointer; }
+
+        /* --- CONTAINER --- */
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 50px auto;
+        }
+
+        .page-title-box {
+            text-align: center;
+            margin-bottom: 40px;
+            background: var(--black);
+            padding: 30px;
+            border-left: 10px solid var(--gold);
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.1);
+        }
+
+        .page-title-box h1 {
+            font-family: 'Archivo Black';
+            text-shadow: var(--text-stroke);
+            color: white;
+            font-size: clamp(1.5rem, 6vw, 2.5rem);
+            text-transform: uppercase;
+        }
+
+        .page-title-box p {
+            color: var(--gold);
+            font-family: 'Bebas Neue';
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        /* --- VIP FORM DESIGN --- */
+        .form-card {
+            background: var(--white);
+            padding: 40px;
+            border: 4px solid var(--black);
+            box-shadow: 12px 12px 0px var(--black);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-family: 'Bebas Neue';
+            font-size: 1.3rem;
+            color: var(--black);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid var(--black);
+            background: var(--paper);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            transition: 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            background: var(--white);
+            box-shadow: 5px 5px 0px var(--gold);
+            transform: translate(-2px, -2px);
+        }
+
+        textarea.form-control {
+            min-height: 180px;
+            resize: none;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: var(--black);
+            color: var(--gold);
+            padding: 20px;
+            font-family: 'Archivo Black';
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background: var(--gold);
+            color: var(--black);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-submit:disabled {
+            background: #ccc;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        /* --- SUCCESS MODAL --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-box {
+            background: var(--white);
+            padding: 40px;
+            border: 5px solid var(--gold);
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 20px 20px 0px var(--black);
+        }
+
+        .modal-icon {
+            font-size: 4rem;
+            color: var(--black);
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-family: 'Archivo Black';
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .modal-text {
+            font-weight: 700;
+            color: #444;
+            margin-bottom: 25px;
+        }
+
+        .btn-modal {
+            background: var(--black);
+            color: var(--gold);
+            padding: 12px 40px;
+            font-family: 'Bebas Neue';
+            font-size: 1.3rem;
+            border: none;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .form-card { padding: 25px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">MATTI KE DEWAR</div>
+        <div class="hamburger" onclick="toggleMenu()">
+            <i class="fas fa-bars-staggered"></i>
+        </div>
+    </header>
+
+    <div class="nav-overlay" id="navOverlay">
+        <div class="close-btn" onclick="toggleMenu()">&times;</div>
+        <a href="index.html">Home</a>
+        <a href="newspaper.html">Recent Newspaper</a>
+        <a href="team.html">Our Team</a>
+        <a href="history.html">Our History</a>
+        <a href="submit-news.html">Submit News</a>
+        <a href="articles.html">Short Articles</a>
+    </div>
+
+    <div class="container">
+        <div class="page-title-box">
+            <h1>News Submission Portal</h1>
+            <p>Report the truth. If Your News Comply With Our Policies We'll Publish It</p>
+        </div>
+
+        <div class="form-card">
+            <form id="newsForm" onsubmit="submitNews(event)">
+                <div class="form-group">
+                    <label for="name">Your Legal Name</label>
+                    <input type="text" id="name" class="form-control" placeholder="EX: RAFIQ KHAN" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="contact">Verified Contact (WhatsApp)</label>
+                    <input type="tel" id="contact" class="form-control" placeholder="03XXXXXXXXX" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="content">News Report (Urdu/English/Sindhi)</label>
+                    <textarea id="content" class="form-control" placeholder="DETAILED DESCRIPTION OF THE EVENT..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">Transmit Report</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="successModal">
+        <div class="modal-box">
+            <div class="modal-icon"><i class="fas fa-shield-halved"></i></div>
+            <h3 class="modal-title">NEWS SUBMITTED</h3>
+            <p class="modal-text">Submission complete - Our editorial board will review your submission shortly.</p>
+            <button class="btn-modal" onclick="closeModal()">CLOSE</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAosLLivdRapn5yowINSTAmavo8ckqNeps",
+            authDomain: "newspaper-22df2.firebaseapp.com",
+            projectId: "newspaper-22df2",
+            storageBucket: "newspaper-22df2.firebasestorage.app",
+            messagingSenderId: "879891754095",
+            appId: "1:879891754095:web:2a4b95bd6879487cabf19a",
+            measurementId: "G-LWE6XJ0NGK",
+            databaseURL: "https://newspaper-22df2-default-rtdb.firebaseio.com"
+        };
+
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const database = firebase.database();
+
+        function toggleMenu() { document.getElementById('navOverlay').classList.toggle('active'); }
+
+        function submitNews(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value.trim();
+            const contact = document.getElementById('contact').value.trim();
+            const content = document.getElementById('content').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = "SUBMITTING...";
+
+            const newsData = {
+                name: name,
+                contact: contact,
+                content: content,
+                timestamp: Date.now(),
+                dateReadable: new Date().toLocaleString()
+            };
+
+            database.ref('submitted_news').push(newsData)
+                .then(() => {
+                    showModal();
+                    document.getElementById('newsForm').reset();
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "SUBMIT";
+                })
+                .catch((error) => {
+                    console.error(error);
+                    alert("SUBMIT ERROR. TRY AGAIN.");
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "SUBMIT";
+                });
+        }
+
+        function showModal() { document.getElementById('successModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('successModal').style.display = 'none'; }
+    </script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODAY'S NEWSPAPER | MATTI KE DEWAR</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Outfit:wght@400;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --gold: #FFD700;
+            --black: #000000;
+            --white: #ffffff;
+            --paper: #f0f0f0;
+            --text-stroke: 1.2px 1.2px 0px #000, -1px -1px 0px #000, 1px -1px 0px #000, -1px 1px 0px #000;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--paper);
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+            padding-top: 70px;
+        }
+
+        /* --- STROKE TYPOGRAPHY --- */
+        h1, h2, h3 { 
+            font-family: 'Archivo Black', sans-serif;
+            text-transform: uppercase;
+            text-shadow: var(--text-stroke);
+            color: var(--white);
+            line-height: 1.1;
+        }
+
+        /* Adjusted H1 specifically to be smaller */
+        h1.page-title {
+            font-size: clamp(1rem, 4vw, 2.1rem);
+            letter-spacing: 1px;
+        }
+
+        /* --- VIP HEADER --- */
+        header {
+            background: var(--black);
+            height: 70px;
+            width: 100%;
+            position: fixed;
+            top: 0; left: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5%;
+            z-index: 1000;
+            border-bottom: 4px solid var(--gold);
+        }
+
+        .logo {
+            font-family: 'Bebas Neue', cursive;
+            font-size: clamp(1.5rem, 5vw, 2.2rem);
+            color: var(--gold);
+            text-shadow: 2px 2px 0px #444;
+        }
+
+        .hamburger { color: var(--gold); font-size: 1.8rem; cursor: pointer; }
+
+        /* --- NAV OVERLAY --- */
+        .nav-overlay {
+            position: fixed;
+            top: 0; right: -100%;
+            width: 100%; max-width: 350px;
+            height: 100vh;
+            background-color: rgba(0,0,0,0.98);
+            z-index: 2000;
+            transition: 0.4s ease-in-out;
+            display: flex; flex-direction: column;
+            padding-top: 80px;
+            border-left: 5px solid var(--gold);
+        }
+
+        .nav-overlay.active { right: 0; }
+
+        .nav-overlay a {
+            padding: 15px 30px;
+            font-size: 1.4rem;
+            color: var(--gold);
+            text-decoration: none;
+            font-family: 'Bebas Neue';
+            border-bottom: 1px solid #222;
+        }
+
+        .nav-overlay a:hover { background: var(--gold); color: #000; }
+
+        .close-btn {
+            position: absolute;
+            top: 15px; right: 25px;
+            font-size: 3rem; color: var(--white); cursor: pointer;
+        }
+
+        /* --- CONTENT CONTAINER --- */
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 40px auto;
+            min-height: 80vh;
+        }
+
+        .page-title-box {
+            text-align: center;
+            background: var(--black);
+            padding: 25px 15px;
+            margin-bottom: 40px;
+            border-left: 8px solid var(--gold);
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.1);
+        }
+
+        #statusMessage {
+            text-align: center;
+            font-weight: 900;
+            font-size: 1rem;
+            color: var(--black);
+            margin: 20px 0;
+            text-transform: uppercase;
+        }
+
+        /* --- GALLERY GRID --- */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .paper-card {
+            background: var(--white);
+            border: 4px solid var(--black);
+            padding: 8px;
+            transition: 0.3s ease;
+            cursor: pointer;
+            box-shadow: 8px 8px 0px var(--black);
+            position: relative;
+        }
+
+        .paper-card:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 12px 12px 0px var(--gold);
+        }
+
+        .paper-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .paper-info {
+            background: var(--black);
+            padding: 12px;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .view-btn {
+            color: var(--gold);
+            font-family: 'Bebas Neue';
+            font-size: 1.1rem;
+            text-transform: uppercase;
+        }
+
+        /* --- LIGHTBOX --- */
+        .lightbox {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+            padding: 15px;
+        }
+
+        .lightbox img {
+            max-width: 100%;
+            height: auto;
+            border: 4px solid var(--gold);
+            background: white;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 15px; right: 25px;
+            color: var(--gold);
+            font-size: 3.5rem;
+            cursor: pointer;
+            font-weight: 900;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            background: var(--black);
+            color: var(--white);
+            padding: 50px 5%;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        @media (max-width: 600px) {
+            .gallery-grid { grid-template-columns: 1fr; }
+            .container { margin: 20px auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">MATTI KE DEWAR</div>
+        <div class="hamburger" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+        </div>
+    </header>
+
+    <div class="nav-overlay" id="navOverlay">
+        <div class="close-btn" onclick="toggleMenu()">&times;</div>
+        <a href="index.html">Home</a>
+        <a href="newspaper.html">Recent Newspaper</a>
+        <a href="team.html">Our Team</a>
+        <a href="history.html">Our History</a>
+        <a href="submit-news.html">Submit News</a>
+        <a href="articles.html">Short Articles</a>
+    </div>
+
+    <div class="container">
+        <div class="page-title-box">
+            <h1 class="page-title">Today's NewsPaper</h1>
+        </div>
+        
+        <div id="statusMessage">
+            <i class="fas fa-bolt fa-beat" style="color:var(--gold)"></i> SCANNING ARCHIVES...
+        </div>
+
+        <div class="gallery-grid" id="newspaperGrid"></div>
+    </div>
+
+    <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+        <span class="lightbox-close">&times;</span>
+        <img id="lightbox-img" src="" alt="Full Size Newspaper">
+    </div>
+
+    <footer>
+        <h2 class="logo">MATTI KE DEWAR</h2>
+        <p style="margin-top: 10px; opacity: 0.8; font-size: 0.9rem;">The Digital Wall of Truth</p>
+        <p style="margin-top: 25px; font-size: 0.75rem; border-top: 1px solid #333; padding-top: 15px;">
+            &copy; 2026 Roznama Matti Ke Dewar.
+        </p>
+    </footer>
+
+    <script>
+        // Firebase initialization & existing logic stays exactly same to keep your app working
+        const firebaseConfig = {
+            apiKey: "AIzaSyAosLLivdRapn5yowINSTAmavo8ckqNeps",
+            authDomain: "newspaper-22df2.firebaseapp.com",
+            projectId: "newspaper-22df2",
+            storageBucket: "newspaper-22df2.firebasestorage.app",
+            messagingSenderId: "879891754095",
+            appId: "1:879891754095:web:2a4b95bd6879487cabf19a",
+            measurementId: "G-LWE6XJ0NGK",
+            databaseURL: "https://newspaper-22df2-default-rtdb.firebaseio.com"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        function toggleMenu() {
+            document.getElementById('navOverlay').classList.toggle('active');
+        }
+
+        const folderPath = 'images/'; 
+        const maxCheck = 30; 
+        let imagesFound = 0;
+        const grid = document.getElementById('newspaperGrid');
+        const statusMsg = document.getElementById('statusMessage');
+
+        function tryLoadImage(index) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                const src = `${folderPath}${index}.jpg`;
+                img.onload = function() {
+                    const card = document.createElement('div');
+                    card.className = 'paper-card';
+                    card.onclick = () => openLightbox(src);
+                    card.innerHTML = `<img src="${src}" alt="Page ${index}"><div class="paper-info"><div class="view-btn"><i class="fas fa-expand"></i> Page ${index}</div></div>`;
+                    grid.appendChild(card);
+                    imagesFound++;
+                    resolve(true);
+                };
+                img.onerror = () => resolve(false);
+                img.src = src;
+            });
+        }
+
+        async function loadAllImages() {
+            for (let i = maxCheck; i >= 1; i--) { await tryLoadImage(i); }
+            if (imagesFound > 0) statusMsg.style.display = 'none';
+            else statusMsg.innerHTML = `NO EDITIONS FOUND.`;
+        }
+
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        function openLightbox(src) { lightbox.style.display = 'flex'; lightboxImg.src = src; document.body.style.overflow = 'hidden'; }
+        function closeLightbox(e) { if (e.target !== lightboxImg) { lightbox.style.display = 'none'; document.body.style.overflow = 'auto'; } }
+
+        window.onload = loadAllImages;
+    </script>
+</body>
+</html>
