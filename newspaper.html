@@ -11,6 +11,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+
     <style>
         :root {
             --gold: #FFD700;
@@ -29,7 +31,6 @@
             padding-top: 70px;
         }
 
-        /* --- STROKE TYPOGRAPHY --- */
         h1, h2, h3 { 
             font-family: 'Archivo Black', sans-serif;
             text-transform: uppercase;
@@ -38,13 +39,11 @@
             line-height: 1.1;
         }
 
-        /* Adjusted H1 specifically to be smaller */
         h1.page-title {
             font-size: clamp(1rem, 4vw, 2.1rem);
             letter-spacing: 1px;
         }
 
-        /* --- VIP HEADER --- */
         header {
             background: var(--black);
             height: 70px;
@@ -68,7 +67,6 @@
 
         .hamburger { color: var(--gold); font-size: 1.8rem; cursor: pointer; }
 
-        /* --- NAV OVERLAY --- */
         .nav-overlay {
             position: fixed;
             top: 0; right: -100%;
@@ -101,10 +99,9 @@
             font-size: 3rem; color: var(--white); cursor: pointer;
         }
 
-        /* --- CONTENT CONTAINER --- */
         .container {
             width: 90%;
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 40px auto;
             min-height: 80vh;
         }
@@ -118,99 +115,83 @@
             box-shadow: 8px 8px 0px rgba(0,0,0,0.1);
         }
 
+        /* --- PDF VIEWER & STATUS --- */
         #statusMessage {
             text-align: center;
             font-weight: 900;
-            font-size: 1rem;
+            font-size: 1.2rem;
             color: var(--black);
-            margin: 20px 0;
+            margin: 40px 0;
             text-transform: uppercase;
         }
 
-        /* --- GALLERY GRID --- */
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
+        #errorMessage {
+            display: none;
+            text-align: center;
+            background: var(--white);
+            padding: 40px 20px;
+            border: 4px solid var(--black);
+            box-shadow: 8px 8px 0px var(--black);
         }
 
-        .paper-card {
+        #errorMessage i {
+            font-size: 4rem;
+            color: #d9534f;
+            margin-bottom: 20px;
+        }
+
+        #errorMessage h2 {
+            color: var(--black);
+            text-shadow: none;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        #errorMessage p {
+            font-weight: bold;
+            color: #333;
+        }
+
+        #pdfContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .pdf-page-wrapper {
+            width: 100%;
             background: var(--white);
             border: 4px solid var(--black);
-            padding: 8px;
-            transition: 0.3s ease;
-            cursor: pointer;
             box-shadow: 8px 8px 0px var(--black);
             position: relative;
         }
 
-        .paper-card:hover {
-            transform: translate(-3px, -3px);
-            box-shadow: 12px 12px 0px var(--gold);
-        }
-
-        .paper-card img {
+        /* Ensures canvas scales correctly on mobile */
+        canvas {
             width: 100%;
             height: auto;
             display: block;
         }
 
-        .paper-info {
+        .page-indicator {
             background: var(--black);
-            padding: 12px;
-            margin-top: 8px;
+            color: var(--gold);
             text-align: center;
+            padding: 10px;
+            font-family: 'Bebas Neue', cursive;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            border-top: 2px solid var(--black);
         }
 
-        .view-btn {
-            color: var(--gold);
-            font-family: 'Bebas Neue';
-            font-size: 1.1rem;
-            text-transform: uppercase;
-        }
-
-        /* --- LIGHTBOX --- */
-        .lightbox {
-            display: none;
-            position: fixed;
-            z-index: 3000;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.95);
-            justify-content: center;
-            align-items: center;
-            overflow: auto;
-            padding: 15px;
-        }
-
-        .lightbox img {
-            max-width: 100%;
-            height: auto;
-            border: 4px solid var(--gold);
-            background: white;
-        }
-
-        .lightbox-close {
-            position: absolute;
-            top: 15px; right: 25px;
-            color: var(--gold);
-            font-size: 3.5rem;
-            cursor: pointer;
-            font-weight: 900;
-        }
-
-        /* --- FOOTER --- */
         footer {
             background: var(--black);
             color: var(--white);
             padding: 50px 5%;
             text-align: center;
             margin-top: 60px;
-        }
-
-        @media (max-width: 600px) {
-            .gallery-grid { grid-template-columns: 1fr; }
-            .container { margin: 20px auto; }
         }
     </style>
 </head>
@@ -225,12 +206,12 @@
 
     <div class="nav-overlay" id="navOverlay">
         <div class="close-btn" onclick="toggleMenu()">&times;</div>
-        <a href="index.html">Home</a>
-        <a href="newspaper.html">Recent Newspaper</a>
-        <a href="team.html">Our Team</a>
-        <a href="history.html">Our History</a>
-        <a href="submit-news.html">Submit News</a>
-        <a href="articles.html">Short Articles</a>
+        <a href='/'>Home</a>
+        <a href='/newspaper'>Recent Newspaper</a>
+        <a href='/team'>Our Team</a>
+        <a href='/history'>Our History</a>
+        <a href='/submit-news'>Submit News</a>
+        <a href='/articles'>Short Articles</a>
     </div>
 
     <div class="container">
@@ -239,15 +220,17 @@
         </div>
         
         <div id="statusMessage">
-            <i class="fas fa-bolt fa-beat" style="color:var(--gold)"></i> SCANNING ARCHIVES...
+            <i class="fas fa-spinner fa-spin" style="color:var(--gold); font-size: 2rem; margin-bottom: 15px; display:block;"></i> 
+            FETCHING LATEST EDITION...
         </div>
 
-        <div class="gallery-grid" id="newspaperGrid"></div>
-    </div>
+        <div id="errorMessage">
+            <i class="fas fa-tools"></i>
+            <h2>TECHNICAL ISSUES DETECTED</h2>
+            <p>WE ARE CURRENTLY WORKING TO RESOLVE THIS. PLEASE CHECK BACK SHORTLY.</p>
+        </div>
 
-    <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
-        <span class="lightbox-close">&times;</span>
-        <img id="lightbox-img" src="" alt="Full Size Newspaper">
+        <div id="pdfContainer"></div>
     </div>
 
     <footer>
@@ -259,59 +242,79 @@
     </footer>
 
     <script>
-        // Firebase initialization & existing logic stays exactly same to keep your app working
-        const firebaseConfig = {
-            apiKey: "AIzaSyAosLLivdRapn5yowINSTAmavo8ckqNeps",
-            authDomain: "newspaper-22df2.firebaseapp.com",
-            projectId: "newspaper-22df2",
-            storageBucket: "newspaper-22df2.firebasestorage.app",
-            messagingSenderId: "879891754095",
-            appId: "1:879891754095:web:2a4b95bd6879487cabf19a",
-            measurementId: "G-LWE6XJ0NGK",
-            databaseURL: "https://newspaper-22df2-default-rtdb.firebaseio.com"
-        };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-
+        // Hamburger Menu Logic
         function toggleMenu() {
             document.getElementById('navOverlay').classList.toggle('active');
         }
 
-        const folderPath = 'images/'; 
-        const maxCheck = 30; 
-        let imagesFound = 0;
-        const grid = document.getElementById('newspaperGrid');
+        // --- PDF.js Logic ---
+        
+        // 1. Point this to the exact name of your PDF file in the same folder as this HTML file.
+        const pdfUrl = 'latest.pdf'; 
+
+        const pdfContainer = document.getElementById('pdfContainer');
         const statusMsg = document.getElementById('statusMessage');
+        const errorMsg = document.getElementById('errorMessage');
 
-        function tryLoadImage(index) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                const src = `${folderPath}${index}.jpg`;
-                img.onload = function() {
-                    const card = document.createElement('div');
-                    card.className = 'paper-card';
-                    card.onclick = () => openLightbox(src);
-                    card.innerHTML = `<img src="${src}" alt="Page ${index}"><div class="paper-info"><div class="view-btn"><i class="fas fa-expand"></i> Page ${index}</div></div>`;
-                    grid.appendChild(card);
-                    imagesFound++;
-                    resolve(true);
-                };
-                img.onerror = () => resolve(false);
-                img.src = src;
-            });
+        // Set PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+        async function loadPDF() {
+            try {
+                // Fetch the PDF
+                const loadingTask = pdfjsLib.getDocument(pdfUrl);
+                const pdf = await loadingTask.promise;
+                
+                // Hide loading spinner
+                statusMsg.style.display = 'none';
+
+                // Loop through all pages and render them immediately
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    
+                    // Render at 1.5x scale for clear text quality
+                    const viewport = page.getViewport({ scale: 1.5 }); 
+
+                    // Create Wrapper
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'pdf-page-wrapper';
+
+                    // Create Canvas for the PDF Page
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    // Create Page Indicator Banner
+                    const indicator = document.createElement('div');
+                    indicator.className = 'page-indicator';
+                    indicator.innerHTML = `PAGE ${pageNum}`;
+
+                    // Append to DOM
+                    wrapper.appendChild(canvas);
+                    wrapper.appendChild(indicator);
+                    pdfContainer.appendChild(wrapper);
+
+                    // Render the page onto the canvas
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    
+                    // Await the render to ensure pages load in the correct 1,2,3 order
+                    await page.render(renderContext).promise;
+                }
+
+            } catch (error) {
+                // If the PDF isn't found or is corrupted, hide loading and show the error block
+                console.error('Error loading PDF:', error);
+                statusMsg.style.display = 'none';
+                errorMsg.style.display = 'block';
+            }
         }
 
-        async function loadAllImages() {
-            for (let i = maxCheck; i >= 1; i--) { await tryLoadImage(i); }
-            if (imagesFound > 0) statusMsg.style.display = 'none';
-            else statusMsg.innerHTML = `NO EDITIONS FOUND.`;
-        }
-
-        const lightbox = document.getElementById('lightbox');
-        const lightboxImg = document.getElementById('lightbox-img');
-        function openLightbox(src) { lightbox.style.display = 'flex'; lightboxImg.src = src; document.body.style.overflow = 'hidden'; }
-        function closeLightbox(e) { if (e.target !== lightboxImg) { lightbox.style.display = 'none'; document.body.style.overflow = 'auto'; } }
-
-        window.onload = loadAllImages;
+        // Trigger PDF load as soon as window loads
+        window.onload = loadPDF;
     </script>
 </body>
 </html>
